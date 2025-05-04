@@ -1,145 +1,107 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Visit Report Form</title>
+  <title>Visit Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-    }
-    label {
-      font-weight: bold;
-      margin-top: 10px;
-      display: block;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-    }
-    button {
-      padding: 10px 20px;
-      background-color: green;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: darkgreen;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 15px; padding: 10px 15px; }
   </style>
 </head>
 <body>
+
   <h2>Visit Report Form</h2>
+
   <form id="visitForm">
-    <label>Company Name</label>
-    <input type="text" name="companyName" required>
-
     <label>Name</label>
-    <input type="text" name="name" required>
+    <input name="name" required>
 
-    <label>Mobile</label>
-    <input type="tel" name="mobile" required>
+    <label>Mobile Number</label>
+    <input name="mobile" required>
 
     <label>Email</label>
-    <input type="email" name="email" required>
+    <input name="email">
 
     <label>Address</label>
     <textarea name="address" required></textarea>
 
     <label>City</label>
-    <input type="text" name="city" required>
+    <input name="city" required>
 
     <label>State</label>
-    <input type="text" name="state" required>
+    <input name="state" required>
 
     <label>Pin Code</label>
-    <input type="text" name="pinCode" required>
+    <input name="pincode" required>
 
     <label>Materials Required</label>
-    <select name="materialRequired" required>
-      <option value="">Select</option>
-      <option value="ACID RESISTANT MATERIALS">ACID RESISTANT MATERIALS</option>
-      <option value="REFRACTORY MATERIALS">REFRACTORY MATERIALS</option>
-      <option value="INDUSTRIAL FLOORING TILES">INDUSTRIAL FLOORING TILES</option>
-      <option value="EPOXY COATINGS">EPOXY COATINGS</option>
-      <option value="ACID RESISTANT AND REFRACTORY MATERIALS">ACID RESISTANT AND REFRACTORY MATERIALS</option>
+    <select name="materials" required>
+      <option>ACID RESISTANT MATERIALS</option>
+      <option>TILES</option>
+      <option>OTHER</option>
     </select>
 
     <label>About Requirement</label>
-    <textarea name="aboutRequirement"></textarea>
+    <textarea name="requirement" required></textarea>
 
     <label>Remarks</label>
     <textarea name="remarks"></textarea>
 
     <label>Current Location (Lat, Lng)</label>
-    <input type="text" name="location" id="location" readonly required>
+    <input id="location" name="location" readonly>
 
-    <p><a href="#" id="mapLink" target="_blank">Open in Google Maps</a></p>
+    <a id="mapLink" href="#" target="_blank">Open in Google Maps</a><br>
 
     <button type="submit">Submit</button>
   </form>
 
   <script>
-    const form = document.getElementById("visitForm");
-    const locationInput = document.getElementById("location");
-    const mapLink = document.getElementById("mapLink");
+    // Set Google Script URL
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec';
 
-    // Get GPS Location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude.toFixed(6);
-          const lng = position.coords.longitude.toFixed(6);
-          locationInput.value = `${lat}, ${lng}`;
-          mapLink.href = `https://maps.google.com/?q=${lat},${lng}`;
-        },
-        () => {
-          locationInput.value = "Location unavailable";
-        }
-      );
+    // Auto-fetch location
+    function fetchLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const latLng = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+          document.getElementById('location').value = latLng;
+          document.getElementById('mapLink').href = `https://maps.google.com/?q=${latLng}`;
+        }, () => {
+          alert("Failed to fetch location.");
+        });
+      } else {
+        alert("Geolocation not supported.");
+      }
     }
 
-    form.addEventListener("submit", function (e) {
+    fetchLocation(); // Run when page loads
+
+    // Form submit
+    document.getElementById('visitForm').addEventListener('submit', e => {
       e.preventDefault();
+      const form = e.target;
 
-      const formData = {
-        companyName: form.companyName.value,
-        name: form.name.value,
-        mobile: form.mobile.value,
-        email: form.email.value,
-        address: form.address.value,
-        city: form.city.value,
-        state: form.state.value,
-        pinCode: form.pinCode.value,
-        materialRequired: form.materialRequired.value,
-        aboutRequirement: form.aboutRequirement.value,
-        remarks: form.remarks.value,
-        latitude: locationInput.value.split(",")[0],
-        longitude: locationInput.value.split(",")[1],
-      };
-
-      fetch("https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec", {
-        method: "POST",
-        body: JSON.stringify(formData),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new FormData(form)
       })
-      .then(response => {
-        alert("Form submitted! Data saved to Google Sheet.");
-        form.reset();
+      .then(res => {
+        if (res.ok) {
+          alert("Form submitted successfully!");
+          form.reset();
+        } else {
+          return res.text().then(txt => { throw new Error(txt); });
+        }
       })
-      .catch(error => {
-        alert("Error submitting form.");
-        console.error(error);
+      .catch(async error => {
+        const errorText = await (error.response?.text?.() || error.message);
+        alert("Error submitting form:\n" + errorText);
+        console.error("Submission Error:", error);
       });
     });
   </script>
+
 </body>
 </html>
