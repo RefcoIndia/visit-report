@@ -2,71 +2,86 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Visit Report Form</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background-color: #f8f9fa;
+      background-color: #f4f4f4;
+    }
+    h2 {
+      text-align: center;
+    }
+    form {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
     label {
       display: block;
-      margin-top: 10px;
-      font-weight: bold;
+      margin: 10px 0 5px;
     }
-    input, textarea, select {
+    input, select, textarea {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
+      border-radius: 4px;
     }
     button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      background-color: #4CAF50;
+      background-color: #28a745;
       color: white;
-      font-size: 16px;
+      padding: 10px 20px;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
     button:hover {
-      background-color: #45a049;
+      background-color: #218838;
+    }
+    .success, .error {
+      text-align: center;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
-
   <h2>Visit Report Form</h2>
   <form id="visit-form">
     <label>Name</label>
-    <input type="text" name="name" required>
+    <input name="name" required>
 
     <label>Mobile Number</label>
-    <input type="text" name="mobile" required>
+    <input name="mobile" required>
 
     <label>Email</label>
     <input type="email" name="email">
 
     <label>Address</label>
-    <input type="text" name="address">
+    <input name="address">
 
     <label>City</label>
-    <input type="text" name="city">
+    <input name="city">
 
     <label>State</label>
-    <input type="text" name="state">
+    <input name="state">
 
     <label>Pin Code</label>
-    <input type="text" name="pincode">
+    <input name="pin">
 
     <label>Materials Required</label>
-    <select name="materials">
-      <option>ACID RESISTANT MATERIALS</option>
-      <option>TILES</option>
-      <option>BRICKS</option>
-      <option>OTHER</option>
-    </select>
+    <input name="materials">
 
     <label>About Requirement</label>
     <textarea name="requirement"></textarea>
@@ -75,43 +90,41 @@
     <textarea name="remarks"></textarea>
 
     <label>Current Location (Lat, Lng)</label>
-    <input type="text" name="location">
+    <input name="location">
 
     <button type="submit">Submit</button>
+    <div class="success" id="success-message" style="display: none;">Form submitted successfully!</div>
+    <div class="error" id="error-message" style="display: none;">Failed to submit the form. Please try again.</div>
   </form>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec';
-
-    document.getElementById('visit-form').addEventListener('submit', e => {
+    document.getElementById('visit-form').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      const formData = new FormData(e.target);
+      const form = e.target;
+      const formData = new FormData(form);
       const data = {};
-      formData.forEach((value, key) => {
-        data[key] = value;
-      });
+      formData.forEach((value, key) => data[key] = value);
 
-      fetch(scriptURL, {
+      fetch('https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
           'Content-Type': 'application/json'
         }
       })
+      .then(res => res.text())
       .then(response => {
-        if (!response.ok) throw new Error("Network response was not ok");
-        return response.json();
+        document.getElementById('success-message').style.display = 'block';
+        document.getElementById('error-message').style.display = 'none';
+        form.reset();
       })
-      .then(res => {
-        alert("✅ Form submitted successfully!");
-        document.getElementById('visit-form').reset();
-      })
-      .catch(error => {
-        alert("❌ Error submitting form:\n" + error.message);
+      .catch(err => {
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('success-message').style.display = 'none';
+        console.error('Submission error:', err);
       });
     });
   </script>
-
 </body>
 </html>
