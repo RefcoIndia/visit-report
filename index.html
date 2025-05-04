@@ -7,34 +7,30 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
       max-width: 600px;
       margin: auto;
+      padding: 20px;
     }
     label {
       font-weight: bold;
+      margin-top: 10px;
       display: block;
-      margin-top: 15px;
     }
     input, textarea, select {
       width: 100%;
       padding: 8px;
       margin-top: 5px;
-      box-sizing: border-box;
-    }
-    input[readonly] {
-      background-color: #f0f0f0;
-    }
-    #map-link {
-      display: inline-block;
-      margin-top: 5px;
-      color: #007BFF;
-      text-decoration: none;
+      margin-bottom: 15px;
     }
     button {
-      margin-top: 20px;
-      padding: 10px 15px;
-      font-size: 16px;
+      padding: 10px 20px;
+      background-color: green;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: darkgreen;
     }
   </style>
 </head>
@@ -42,7 +38,7 @@
   <h2>Visit Report Form</h2>
   <form id="visitForm">
     <label>Company Name</label>
-    <input type="text" name="company" required>
+    <input type="text" name="companyName" required>
 
     <label>Name</label>
     <input type="text" name="name" required>
@@ -51,68 +47,98 @@
     <input type="tel" name="mobile" required>
 
     <label>Email</label>
-    <input type="email" name="email">
+    <input type="email" name="email" required>
 
     <label>Address</label>
-    <textarea name="address" rows="2"></textarea>
+    <textarea name="address" required></textarea>
 
     <label>City</label>
-    <input type="text" name="city">
+    <input type="text" name="city" required>
 
     <label>State</label>
-    <input type="text" name="state">
+    <input type="text" name="state" required>
 
     <label>Pin Code</label>
-    <input type="text" name="pincode">
+    <input type="text" name="pinCode" required>
 
     <label>Materials Required</label>
-    <select name="materials" required>
-      <option value="">-- Select an option --</option>
-      <option>ACID RESISTANT MATERIALS</option>
-      <option>REFRACTORY MATERIALS</option>
-      <option>INDUSTRIAL FLOORING TILES</option>
-      <option>EPOXY COATINGS</option>
-      <option>ACID RESISTANT AND REFRACTORY MATERIALS</option>
+    <select name="materialRequired" required>
+      <option value="">Select</option>
+      <option value="ACID RESISTANT MATERIALS">ACID RESISTANT MATERIALS</option>
+      <option value="REFRACTORY MATERIALS">REFRACTORY MATERIALS</option>
+      <option value="INDUSTRIAL FLOORING TILES">INDUSTRIAL FLOORING TILES</option>
+      <option value="EPOXY COATINGS">EPOXY COATINGS</option>
+      <option value="ACID RESISTANT AND REFRACTORY MATERIALS">ACID RESISTANT AND REFRACTORY MATERIALS</option>
     </select>
 
     <label>About Requirement</label>
-    <textarea name="about" rows="3"></textarea>
+    <textarea name="aboutRequirement"></textarea>
 
     <label>Remarks</label>
-    <textarea name="remarks" rows="3"></textarea>
+    <textarea name="remarks"></textarea>
 
     <label>Current Location (Lat, Lng)</label>
-    <input type="text" name="location" id="location" readonly>
-    <a id="map-link" href="#" target="_blank">View on Google Maps</a>
+    <input type="text" name="location" id="location" readonly required>
+
+    <p><a href="#" id="mapLink" target="_blank">Open in Google Maps</a></p>
 
     <button type="submit">Submit</button>
   </form>
 
   <script>
-    window.onload = function () {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
+    const form = document.getElementById("visitForm");
+    const locationInput = document.getElementById("location");
+    const mapLink = document.getElementById("mapLink");
+
+    // Get GPS Location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
           const lat = position.coords.latitude.toFixed(6);
-          const lon = position.coords.longitude.toFixed(6);
-          const locationStr = `${lat}, ${lon}`;
-          const mapURL = `https://www.google.com/maps?q=${lat},${lon}`;
+          const lng = position.coords.longitude.toFixed(6);
+          locationInput.value = `${lat}, ${lng}`;
+          mapLink.href = `https://maps.google.com/?q=${lat},${lng}`;
+        },
+        () => {
+          locationInput.value = "Location unavailable";
+        }
+      );
+    }
 
-          document.getElementById('location').value = locationStr;
-          document.getElementById('map-link').href = mapURL;
-          document.getElementById('map-link').textContent = 'Open in Google Maps';
-        }, function () {
-          document.getElementById('location').value = "Location access denied.";
-          document.getElementById('map-link').style.display = "none";
-        });
-      } else {
-        document.getElementById('location').value = "Geolocation not supported.";
-        document.getElementById('map-link').style.display = "none";
-      }
-    };
-
-    document.getElementById("visitForm").addEventListener("submit", function(e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
-      alert("Form submitted! (You can now link it to Google Sheets or your backend)");
+
+      const formData = {
+        companyName: form.companyName.value,
+        name: form.name.value,
+        mobile: form.mobile.value,
+        email: form.email.value,
+        address: form.address.value,
+        city: form.city.value,
+        state: form.state.value,
+        pinCode: form.pinCode.value,
+        materialRequired: form.materialRequired.value,
+        aboutRequirement: form.aboutRequirement.value,
+        remarks: form.remarks.value,
+        latitude: locationInput.value.split(",")[0],
+        longitude: locationInput.value.split(",")[1],
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec", {
+        method: "POST",
+        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      .then(response => {
+        alert("Form submitted! Data saved to Google Sheet.");
+        form.reset();
+      })
+      .catch(error => {
+        alert("Error submitting form.");
+        console.error(error);
+      });
     });
   </script>
 </body>
