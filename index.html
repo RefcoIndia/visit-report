@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visit Report Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+    input[readonly] {
+      background-color: #f0f0f0;
+    }
+    #map-link {
+      display: inline-block;
+      margin-top: 5px;
+      color: #007BFF;
+      text-decoration: none;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Visit Report Form</h2>
+  <form id="visitForm">
+    <label>Company Name</label>
+    <input type="text" name="company" required>
+
+    <label>Name</label>
+    <input type="text" name="name" required>
+
+    <label>Mobile</label>
+    <input type="tel" name="mobile" required>
+
+    <label>Email</label>
+    <input type="email" name="email">
+
+    <label>Address</label>
+    <textarea name="address" rows="2"></textarea>
+
+    <label>City</label>
+    <input type="text" name="city">
+
+    <label>State</label>
+    <input type="text" name="state">
+
+    <label>Pin Code</label>
+    <input type="text" name="pincode">
+
+    <label>Materials Required</label>
+    <select name="materials" required>
+      <option value="">-- Select an option --</option>
+      <option>ACID RESISTANT MATERIALS</option>
+      <option>REFRACTORY MATERIALS</option>
+      <option>INDUSTRIAL FLOORING TILES</option>
+      <option>EPOXY COATINGS</option>
+      <option>ACID RESISTANT AND REFRACTORY MATERIALS</option>
+    </select>
+
+    <label>About Requirement</label>
+    <textarea name="about" rows="3"></textarea>
+
+    <label>Remarks</label>
+    <textarea name="remarks" rows="3"></textarea>
+
+    <label>Current Location (Lat, Lng)</label>
+    <input type="text" name="location" id="location" readonly>
+    <a id="map-link" href="#" target="_blank">View on Google Maps</a>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    window.onload = function () {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          const lat = position.coords.latitude.toFixed(6);
+          const lon = position.coords.longitude.toFixed(6);
+          const locationStr = `${lat}, ${lon}`;
+          const mapURL = `https://www.google.com/maps?q=${lat},${lon}`;
+
+          document.getElementById('location').value = locationStr;
+          document.getElementById('map-link').href = mapURL;
+          document.getElementById('map-link').textContent = 'Open in Google Maps';
+        }, function () {
+          document.getElementById('location').value = "Location access denied.";
+          document.getElementById('map-link').style.display = "none";
+        });
+      } else {
+        document.getElementById('location').value = "Geolocation not supported.";
+        document.getElementById('map-link').style.display = "none";
+      }
+    };
+
+    document.getElementById("visitForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      alert("Form submitted! (You can now link it to Google Sheets or your backend)");
+    });
+  </script>
+</body>
+</html>
