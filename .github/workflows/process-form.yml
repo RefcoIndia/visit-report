@@ -1,0 +1,40 @@
+name: Process Visit Report Form Submission
+
+on:
+  repository_dispatch:
+    types: [form_submission]
+
+jobs:
+  process_form:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Create or Update CSV File
+        id: csv
+        run: |
+          DATA=$(jq -r '.client_payload.data' <<< "$GITHUB_EVENT_PAYLOAD")
+          COMPANY_NAME=$(jq -r '.companyName' <<< "$DATA")
+          NAME=$(jq -r '.name' <<< "$DATA")
+          MOBILE=$(jq -r '.mobile' <<< "$DATA")
+          EMAIL=$(jq -r '.email' <<< "$DATA")
+          ADDRESS=$(jq -r '.address' <<< "$DATA")
+          CITY=$(jq -r '.city' <<< "$DATA")
+          STATE=$(jq -r '.state' <<< "$DATA")
+          PIN_CODE=$(jq -r '.pinCode' <<< "$DATA")
+          MATERIALS=$(jq -r '.materialsRequired' <<< "$DATA")
+          ABOUT=$(jq -r '.aboutRequirement' <<< "$DATA")
+          REMARKS=$(jq -r '.remarks' <<< "$DATA")
+          GPS=$(jq -r '.gpsLocation' <<< "$DATA")
+
+          echo "$COMPANY_NAME,$NAME,$MOBILE,$EMAIL,$ADDRESS,$CITY,$STATE,$PIN_CODE,$MATERIALS,$ABOUT,$REMARKS,$GPS" >> visit_reports.csv
+
+      - name: Commit and Push Changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add visit_reports.csv
+          git commit -m "Add new visit report"
+          git push
