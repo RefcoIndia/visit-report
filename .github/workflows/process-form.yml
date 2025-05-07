@@ -29,12 +29,15 @@ jobs:
           REMARKS=$(jq -r '.remarks' <<< "$DATA")
           GPS=$(jq -r '.gpsLocation' <<< "$DATA")
 
+          # Append data to CSV file
           echo "$COMPANY_NAME,$NAME,$MOBILE,$EMAIL,$ADDRESS,$CITY,$STATE,$PIN_CODE,$MATERIALS,$ABOUT,$REMARKS,$GPS" >> visit_reports.csv
 
       - name: Commit and Push Changes
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git add visit_reports.csv
           git commit -m "Add new visit report"
-          git push
+          git push https://${GH_PAT}@github.com/RefcoIndia/visit-report-form.git
