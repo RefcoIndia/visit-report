@@ -3,119 +3,115 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Visit Report Form</title>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://apis.google.com/js/api.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f3f3;
-      padding: 2rem;
-    }
-    .form-container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    input, select, textarea, button {
-      width: 100%;
-      margin-bottom: 1rem;
-      padding: 0.6rem;
-      font-size: 1rem;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .google-button {
-      margin-bottom: 1rem;
-    }
-  </style>
+  <title>Visit Report Submission</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="form-container">
-    <h2>Visit Report Submission</h2>
-    <div id="g_id_onload"
-      data-client_id="87025893302-tjlhqrts2vubbv0bt82ue9u2vtfvnfg0.apps.googleusercontent.com"
-      data-callback="onSignIn"
-      data-auto_prompt="false">
-    </div>
-    <div class="g_id_signin" data-type="standard"></div>
+<body class="bg-gray-100">
+  <div class="max-w-xl mx-auto mt-10 bg-white p-8 rounded shadow">
+    <h1 class="text-2xl font-bold mb-6">Visit Report Submission</h1>
 
     <form id="visitForm">
-      <input type="text" name="Company Name" placeholder="Company Name" required />
-      <input type="text" name="Name" placeholder="Contact Person" required />
-      <input type="tel" name="Mobile" placeholder="Mobile Number" required />
-      <input type="email" name="Email" placeholder="Email" required />
-      <input type="text" name="Address" placeholder="Address" required />
-      <input type="text" name="City" placeholder="City" required />
-      <input type="text" name="State" placeholder="State" required />
-      <input type="text" name="Pin Code" placeholder="Pin Code" required />
+      <div class="space-y-4">
+        <input type="text" placeholder="Company Name" id="companyName" class="w-full p-2 border rounded" required>
+        <input type="text" placeholder="Contact Person" id="name" class="w-full p-2 border rounded" required>
+        <input type="tel" placeholder="Mobile" id="mobile" class="w-full p-2 border rounded" required>
+        <input type="email" placeholder="Email" id="email" class="w-full p-2 border rounded" required>
+        <input type="text" placeholder="Address" id="address" class="w-full p-2 border rounded" required>
+        <input type="text" placeholder="City" id="city" class="w-full p-2 border rounded" required>
+        <input type="text" placeholder="State" id="state" class="w-full p-2 border rounded" required>
+        <input type="text" placeholder="Pin Code" id="pincode" class="w-full p-2 border rounded" required>
 
-      <select name="Material Requirement" required>
-        <option value="">-- Select Material Requirement --</option>
-        <option>ACID RESISTANT MATERIALS</option>
-        <option>REFRACTORY MATERIALS</option>
-        <option>INDUSTRIAL FLOORING TILES</option>
-        <option>EPOXY COATINGS</option>
-        <option>ACID RESISTANT AND REFRACTORY MATERIALS</option>
-      </select>
+        <select id="materialRequired" class="w-full p-2 border rounded" required>
+          <option value="">Select Material Required</option>
+          <option value="ACID RESISTANT MATERIALS">ACID RESISTANT MATERIALS</option>
+          <option value="REFRACTORY MATERIALS">REFRACTORY MATERIALS</option>
+          <option value="INDUSTRIAL FLOORING TILES">INDUSTRIAL FLOORING TILES</option>
+          <option value="EPOXY COATINGS">EPOXY COATINGS</option>
+          <option value="ACID RESISTANT AND REFRACTORY MATERIALS">ACID RESISTANT AND REFRACTORY MATERIALS</option>
+        </select>
 
-      <label>Attach Visiting Card</label>
-      <input type="file" name="Visiting Card" accept="image/*" required />
+        <input type="file" id="visitingCard" accept="image/*" capture="environment" class="w-full p-2 border rounded" required>
 
-      <textarea name="Remarks" placeholder="About Requirement / Remarks" rows="3"></textarea>
+        <textarea placeholder="About Requirement / Remarks" id="remarks" class="w-full p-2 border rounded"></textarea>
 
-      <input type="text" id="location" name="Location" readonly placeholder="Detecting Location..." />
-      <input type="email" id="staffEmail" name="Staff Email" readonly placeholder="Google Sign-In Email" />
+        <input type="text" id="location" placeholder="Auto-detected location" class="w-full p-2 border rounded bg-gray-100" readonly>
 
-      <button type="submit">Submit Report</button>
-      <a href="https://docs.google.com/spreadsheets/d/1tNG36MCxQK3jeqzFT9AMbEdybpFHdexiAGt2ZBRXMu4" target="_blank">
-        <button type="button">View Past Submissions</button>
-      </a>
+        <input type="email" placeholder="Staff Email" id="staffEmail" class="w-full p-2 border rounded" required>
+
+        <div class="flex justify-between space-x-4">
+          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit Report</button>
+          <a href="https://docs.google.com/spreadsheets/d/1tNG36MCxQK3jeqzFT9AMbEdybpFHdexiAGt2ZBRXMu4/edit?usp=sharing" target="_blank" class="bg-gray-600 text-white px-4 py-2 rounded">View Past Submissions</a>
+        </div>
+      </div>
     </form>
-    <p id="confirmation"></p>
+
+    <p id="status" class="mt-4 text-red-600"></p>
   </div>
 
   <script>
-    // Auto-capture Google Sign-In email
-    function onSignIn(response) {
-      const id_token = response.credential;
-      const payload = JSON.parse(atob(id_token.split(".")[1]));
-      document.getElementById("staffEmail").value = payload.email;
-    }
+    const form = document.getElementById("visitForm");
+    const locationField = document.getElementById("location");
+    const status = document.getElementById("status");
 
-    // Auto-location from browser
-    navigator.geolocation.getCurrentPosition((position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      document.getElementById("location").value = `https://maps.google.com/?q=${lat},${lng}`;
+    // Auto-detect location
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      const mapUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
+      locationField.value = mapUrl;
     });
 
-    // Handle form submit
-    document.getElementById("visitForm").addEventListener("submit", async function (e) {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const formData = new FormData(this);
 
-      // Google Apps Script Web App URL
-      const scriptURL = "https://script.google.com/macros/s/AKfycbztmDRNtsR-8e_FTtxhU8KHveH6TQ1XhMJnKaHP8ZZVm4vZ8df37TXZoJUnvYH7EF-c_A/exec";
+      const fileInput = document.getElementById("visitingCard");
+      const file = fileInput.files[0];
 
-      try {
-        const response = await fetch(scriptURL, {
-          method: "POST",
-          body: formData,
-        });
-        const result = await response.text();
-        document.getElementById("confirmation").textContent = "✅ Visit report submitted successfully!";
-        this.reset();
-      } catch (error) {
-        document.getElementById("confirmation").textContent = "❌ Submission failed. Try again.";
+      if (!file) {
+        status.textContent = "Please attach a visiting card.";
+        return;
       }
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const formData = {
+          companyName: document.getElementById("companyName").value,
+          name: document.getElementById("name").value,
+          mobile: document.getElementById("mobile").value,
+          email: document.getElementById("email").value,
+          address: document.getElementById("address").value,
+          city: document.getElementById("city").value,
+          state: document.getElementById("state").value,
+          pincode: document.getElementById("pincode").value,
+          materialRequired: document.getElementById("materialRequired").value,
+          remarks: document.getElementById("remarks").value,
+          location: document.getElementById("location").value,
+          staffEmail: document.getElementById("staffEmail").value,
+          visitingCardURL: reader.result, // base64 encoded
+        };
+
+        try {
+          const response = await fetch("https://script.google.com/macros/s/AKfycbzVyY00qej6eEYikbspTJ4d_YNPs65Tdy6K-AF4pCkYYtrjv2biNiJ0fXA05KVqAfhW/exec", {
+            method: "POST",
+            body: JSON.stringify(formData),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const result = await response.json();
+          if (result.result === "success") {
+            status.textContent = "✅ Submission successful!";
+            form.reset();
+          } else {
+            status.textContent = "❌ Submission failed: " + result.message;
+          }
+        } catch (error) {
+          status.textContent = "❌ Submission failed. Try again.";
+          console.error(error);
+        }
+      };
+
+      reader.readAsDataURL(file);
     });
   </script>
 </body>
